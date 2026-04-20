@@ -1,3 +1,581 @@
+<<<<<<< HEAD
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Formatter & QR Generator</title>
+  <link rel="icon" type="png" href="icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      font-family: "Inter", "Segoe UI", sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      color: #ffffff;
+      background: #000;
+      position: relative;
+      /* overflow-x: hidden; */
+    }
+
+    #bgVideo {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: -1;
+      object-fit: cover;
+      object-position: center center;
+    }
+
+    .bg-overlay {
+      display: none;
+    }
+
+    .page-wrapper {
+      display: flex;
+      gap: 16px;
+      padding: 20px;
+      max-width: 1300px;
+      margin: 0 auto;
+      align-items: flex-start;
+    }
+
+    /* ── PANEL BASE ── */
+    .panel {
+      flex: 1;
+      /* background: rgba(0, 0, 0, 0.35); */
+      /* border: 1px solid rgba(255,255,255,0.12); */
+      /* border-radius: 16px; */
+      padding: 24px 20px;
+      min-width: 0;
+    }
+
+    .panel h2 {
+      text-align: center;
+      margin: 0 0 18px;
+      font-size: 1.2rem;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      color: #fff;
+    }
+
+    /* ── FORMATTER PANEL ── */
+    textarea {
+      width: 100%;
+      min-height: 130px;
+      padding: 12px;
+      font-size: 15px;
+      font-family: inherit;
+      /* border-radius: 10px; */
+      /* border: 2px solid rgba(255,255,255,0.4); */
+      margin-bottom: 14px;
+      resize: vertical;
+      background: rgba(255, 255, 255, 0);
+      /* color: #ffffff; */
+      transition: border 0.2s ease;
+    }
+
+    textarea:focus {
+      /* border-color: #4a90e2; */
+      outline: none;
+    }
+
+    /* textarea::placeholder { color: rgba(255,255,255,0.4); } */
+
+    .btn-group {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      margin-bottom: 12px;
+    }
+
+    button {
+      padding: 11px 22px;
+      font-size: 14px;
+      font-family: inherit;
+      font-weight: 500;
+      border: 2px solid rgba(255,255,255,0.6);
+      border-radius: 8px;
+      cursor: pointer;
+      color: #fff;
+      background: transparent;
+      transition: background 0.2s, color 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    button:hover {
+      background: rgba(255,255,255,0.15);
+    }
+
+    #notif {
+      text-align: center;
+      font-size: 13px;
+      color: #4ade80;
+      height: 18px;
+      margin-bottom: 10px;
+    }
+
+    .output-label {
+      text-align: center;
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.7);
+      margin-bottom: 6px;
+    }
+
+    /* ── QR PANEL ── */
+    .qr-input-wrapper {
+      position: relative;
+      margin-bottom: 16px;
+    }
+
+    .qr-input-wrapper i {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 18px;
+      /* color: rgba(255,255,255,0.5); */
+      pointer-events: none;
+    }
+
+    .qr-input-wrapper input {
+      width: 100%;
+      padding: 11px 12px 11px 38px;
+      font-size: 14px;
+      font-family: inherit;
+      border-radius: 10px;
+      border: 2px solid rgba(255,255,255,0.4);
+      background: rgba(0,0,0,0.3);
+      color: #fff;
+      transition: border 0.2s;
+    }
+
+    .qr-input-wrapper input:focus {
+      border-color: #4a90e2;
+      outline: none;
+    }
+
+    .qr-input-wrapper input::placeholder { color: rgba(255,255,255,0.35); }
+
+    #qr-code-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.2);
+      border: 1px dashed rgba(255,255,255,0.2);
+      border-radius: 12px;
+      min-height: 240px;
+      margin-bottom: 16px;
+      padding: 20px;
+    }
+
+    #qr-code {
+      display: none;
+    }
+
+    #qr-code canvas, #qr-code img {
+      border-radius: 8px;
+    }
+
+    #qr-message {
+      text-align: center;
+      color: rgba(255,255,255,0.4);
+    }
+
+    #qr-message i {
+      font-size: 48px;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    #qr-message p {
+      margin: 0;
+      font-size: 13px;
+    }
+
+    .qr-action-buttons {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    .qr-action-buttons.hidden { display: none; }
+
+    .btn-primary-qr {
+      background: #4a90e2;
+      border-color: #4a90e2;
+      color: #fff;
+    }
+
+    .btn-primary-qr:hover {
+      background: #357abd;
+      border-color: #357abd;
+    }
+
+    .btn-secondary-qr {
+      background: rgba(255,255,255,0.1);
+      border-color: rgba(255,255,255,0.4);
+    }
+
+    .btn-secondary-qr:hover {
+      background: rgba(255,255,255,0.2);
+    }
+
+    #qr-notif {
+      text-align: center;
+      font-size: 13px;
+      color: #4ade80;
+      height: 18px;
+      margin-top: 8px;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .page-wrapper {
+        flex-direction: column;
+        padding: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <video id="bgVideo" autoplay muted loop playsinline>
+    <source src="img/frieren-x-fern-beyond-journeys-end-moewalls-com.mp4" type="video/mp4">
+  </video>
+
+  <div class="bg-overlay"></div>
+
+  <div class="page-wrapper">
+
+    <!-- ══════════════ FORMATTER PANEL ══════════════ -->
+    <div class="panel">
+      <h2><i class="bi bi-fonts"></i> Formatter Nama Otomatis</h2>
+
+      <textarea
+        id="input"
+        placeholder="Contoh:&#10;- Semangat Kak&#10;01 Semangat Kak&#10;01. Semangat Kak"
+      ></textarea>
+
+      <div class="btn-group">
+        <button onclick="formatNama()"><i class="bi bi-play-fill"></i> Proses</button>
+        <button onclick="copyToClipboard()"><i class="bi bi-clipboard"></i> Copy</button>
+      </div>
+
+      <div id="notif"></div>
+
+      <p class="output-label">Edit Hasil:</p>
+      <textarea id="output" placeholder="Hasil akan muncul di sini..."></textarea>
+    </div>
+
+    <!-- ══════════════ QR PANEL ══════════════ -->
+    <div class="panel">
+      <h2><i class="bi bi-upc-scan"></i> QR Code Generator</h2>
+
+      <div class="qr-input-wrapper">
+        <i class="bi bi-link-45deg"></i>
+        <input type="text" id="qr-text" placeholder="https://contoh-website.com" autocomplete="off">
+      </div>
+
+      <div id="qr-code-container">
+        <div id="qr-code"></div>
+        <div id="qr-message">
+          <i class="bi bi-upc-scan"></i>
+          <p>QR Code Anda akan tampil di sini</p>
+        </div>
+      </div>
+
+      <div id="action-buttons" class="qr-action-buttons hidden">
+        <button id="download-btn" class="btn-primary-qr" onclick="downloadQR()">
+          <i class="bi bi-download"></i> Unduh (.png)
+        </button>
+        <button id="copy-btn" class="btn-secondary-qr" onclick="copyQRImage()">
+          <i class="bi bi-clipboard"></i> Salin Gambar
+        </button>
+      </div>
+
+      <div id="qr-notif"></div>
+    </div>
+
+  </div>
+
+  <script>
+    const bgVideo = document.getElementById("bgVideo");
+    document.addEventListener("visibilitychange", function () {
+      if (document.hidden) bgVideo.pause();
+      else bgVideo.play();
+    });
+  </script>
+
+  <!-- ══════════════ FORMATTER SCRIPT ══════════════ -->
+  <script>
+    function toTitleCase(str) {
+      let result = str.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
+      result = result.replace(/\bRt([-. ]*)(\d+)\b/gi, (m, sep, num) => "RT" + sep + num);
+      result = result.replace(/\bRt\b/gi, "RT");
+      result = result.replace(/\bRw([-. ]*)(\d+)\b/gi, (m, sep, num) => "RW" + sep + num);
+      result = result.replace(/\bRw\b/gi, "RW");
+      result = result.replace(
+        /\b(Sd|Smp|Sma|Spbu|Sdn|Smpn|Sman|Smk|Smkn|Mi|lokasi|Rsud|Pt|Rm|Tpu|Cv|Mtq|Kua|Tni|Pln|Dpr|Bpjs|MPR|gki|tk|Mtsn)\b/gi,
+        (match) => match.toUpperCase()
+      );
+      return result;
+    }
+
+    function formatNama() {
+      const inputText = document.getElementById("input").value;
+      const lines = inputText.split("\n");
+
+      const shortcutMap = {
+        Kecamatan: "Kec.",
+        Kabupaten: "Kab.",
+        Jalan: "Jl.",
+        Desa: "Ds.",
+        Kampung: "Kp.",
+        Kelurahan: "Kel.",
+        Dusun: "Dsn."
+      };
+
+      const locationWords = ["Kec", "Kab", "Jl", "Ds", "Kp", "Kel", "Dsn"];
+
+      const cleaned = lines
+        .map((line) => {
+          let nameOnly = line.trim();
+
+          locationWords.forEach((word) => {
+            const regexVariations = new RegExp(`\\b${word}([^\\w.]|$)`, "gi");
+            nameOnly = nameOnly.replace(regexVariations, `${word}. `);
+          });
+
+          for (const [key, val] of Object.entries(shortcutMap)) {
+            const regex = new RegExp("\\b" + key + "\\b", "gi");
+            nameOnly = nameOnly.replace(regex, val);
+          }
+
+          nameOnly = nameOnly
+            .replace(/\bRT\s*(\d+)\b/gi, "RT.$1")
+            .replace(/\bRW\s*(\d+)\b/gi, "RW.$1")
+            .replace(/RT\.(\d+)[\s,\/\\-]*RW\.(\d+)/gi, "RT.$1/RW.$2");
+
+          nameOnly = nameOnly
+            .replace(/^\d+[.\s-]*/, "")
+            .replace(/^[-*.\s]+/, "");
+
+          if (/^[A-Za-z]\.\s+/.test(nameOnly)) {
+            nameOnly = nameOnly.replace(/^[A-Za-z]\.\s+/, "");
+          }
+
+          nameOnly = nameOnly.replace(/^(Nama Mempelai Wanita|Nama Memp\.Pria|Alamat)\s*:\s*/i, "");
+
+          nameOnly = nameOnly.replace(/(?<!^)\s+(?=(Ds\.|Dsn\.|Kp\.|Kec\.|Kab\.|RT\.))/gi, ", ");
+          nameOnly = nameOnly.replace(/^,\s*/, "");
+
+          nameOnly = toTitleCase(nameOnly.trim());
+
+          locationWords.forEach((word) => {
+            const regexStuck = new RegExp(`\\b${word}[.]([A-Za-z])`, "gi");
+            nameOnly = nameOnly.replace(regexStuck, `${word}. $1`);
+          });
+
+          nameOnly = nameOnly.replace(/,+/g, ",");
+          nameOnly = nameOnly.replace(/,(?!\s)/g, ", ");
+          nameOnly = nameOnly.replace(/,([A-Z])/g, ", $1");
+          nameOnly = nameOnly.replace(/(\w),(\w)/g, "$1, $2");
+          nameOnly = nameOnly.replace(/,\s*$/, "");
+          nameOnly = nameOnly.replace(/\.\s*$/, "");
+
+          nameOnly = nameOnly
+            .replace(/\.{2,}/g, ".")
+            .replace(/\.\s*,/g, ".")
+            .replace(/\s*,\s*/g, ", ")
+            .replace(/\s+\./g, ".")
+            .replace(/\.\s+/g, ". ")
+            .replace(/\s{2,}/g, " ");
+
+          nameOnly = nameOnly.replace(/\.{2,}/g, "");
+          nameOnly = nameOnly.replace(/amp;/gi, "");
+          nameOnly = nameOnly.replace(/[^\x20-\x7E\u00A0-\u00FF\u0100-\u017F]/g, "");
+          nameOnly = nameOnly.replace(/^=+/, "");
+
+          return nameOnly;
+        })
+        .filter((line) => line !== "");
+
+      const result = cleaned.join("\n");
+      document.getElementById("output").value = result;
+      showNotif("notif", "Teks berhasil diformat!");
+
+      const output = document.getElementById("output");
+      output.focus();
+      output.select();
+    }
+
+    function copyToClipboard() {
+      const outputText = document.getElementById("output").value;
+      if (outputText.trim() === "") {
+        showNotif("notif", "Tidak ada hasil untuk disalin.");
+        return;
+      }
+      navigator.clipboard.writeText(outputText).then(() => {
+        showNotif("notif", "Hasil disalin ke clipboard!");
+      });
+    }
+
+    function showNotif(id, msg) {
+      const el = document.getElementById(id);
+      el.innerText = msg;
+      setTimeout(() => { el.innerText = ""; }, 2000);
+    }
+
+    // Auto-paste formatter
+    document.getElementById("input").addEventListener("paste", function () {
+      setTimeout(() => {
+        const isi = document.getElementById("input").value;
+        if (isi.includes("<iframe") && isi.includes("src=")) {
+          ambilSrcIframe();
+        } else {
+          formatNama();
+          copyToClipboard();
+        }
+      }, 100);
+    });
+
+    document.getElementById("input").addEventListener("keydown", function (e) {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        formatNama();
+      }
+    });
+
+    document.getElementById("output").addEventListener("copy", function () {
+      showNotif("notif", "Hasil disalin ke clipboard!");
+    });
+
+    // Extract iframe src
+    function ambilSrcIframe() {
+      const inputText = document.getElementById("input").value;
+      const regex = /src="([^"]+)"/;
+      const match = inputText.match(regex);
+      if (match && match[1]) {
+        const link = match[1];
+        document.getElementById("output").value = link;
+        navigator.clipboard.writeText(link).then(() => {
+          showNotif("notif", "Link Google Maps berhasil disalin!");
+        });
+      } else {
+        showNotif("notif", "Tidak ditemukan iframe dengan src.");
+      }
+    }
+
+    // Ctrl+Enter: proses nama & tanggal
+    function prosesNamaDanTanggal(value) {
+      const regex = /^(.+?)\s*&\s*(.+?)\s+(\d{1,2}\s+\w+\s+\d{4})$/i;
+      const match = value.trim().match(regex);
+      if (match) {
+        const nama1 = match[1].toLowerCase().replace(/\s+/g, "-");
+        const nama2 = match[2].toLowerCase().replace(/\s+/g, "-");
+        const tanggal = match[3];
+        const hasil = `${nama1}-${nama2} ${tanggal}`;
+        document.getElementById("output").value = hasil;
+        navigator.clipboard.writeText(hasil);
+      } else {
+        alert("Format tidak cocok. Gunakan: Cindy & Fiyan 01 Juni 2025");
+      }
+    }
+
+    window.addEventListener("keydown", function (e) {
+      if (e.ctrlKey && e.key === "Enter") {
+        e.preventDefault();
+        const input = document.getElementById("input").value;
+        const output = document.getElementById("output").value;
+        const val = document.activeElement.id === "output" ? output : input;
+        prosesNamaDanTanggal(val);
+      }
+    });
+  </script>
+
+  <!-- ══════════════ QR GENERATOR SCRIPT ══════════════ -->
+  <script>
+    let qrInstance = null;
+    let debounceTimer = null;
+
+    const qrInput = document.getElementById("qr-text");
+    const qrCodeDiv = document.getElementById("qr-code");
+    const qrMessage = document.getElementById("qr-message");
+    const actionButtons = document.getElementById("action-buttons");
+
+    function generateQR(text) {
+      qrCodeDiv.innerHTML = "";
+      if (!text.trim()) {
+        qrCodeDiv.style.display = "none";
+        qrMessage.style.display = "block";
+        actionButtons.classList.add("hidden");
+        return;
+      }
+
+      qrInstance = new QRCode(qrCodeDiv, {
+        text: text.trim(),
+        width: 220,
+        height: 220,
+        colorDark: "#000000",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.H
+      });
+
+      qrCodeDiv.style.display = "block";
+      qrMessage.style.display = "none";
+      actionButtons.classList.remove("hidden");
+    }
+
+    qrInput.addEventListener("input", function () {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => generateQR(this.value), 400);
+    });
+
+    qrInput.addEventListener("paste", function () {
+      setTimeout(() => generateQR(this.value), 100);
+    });
+
+    function getQRCanvas() {
+      return qrCodeDiv.querySelector("canvas");
+    }
+
+    function downloadQR() {
+      const canvas = getQRCanvas();
+      if (!canvas) return;
+      const link = document.createElement("a");
+      link.download = "qrcode.png";
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+      showNotif("qr-notif", "QR Code berhasil diunduh!");
+    }
+
+    function copyQRImage() {
+      const canvas = getQRCanvas();
+      if (!canvas) return;
+      canvas.toBlob(function (blob) {
+        const item = new ClipboardItem({ "image/png": blob });
+        navigator.clipboard.write([item]).then(() => {
+          showNotif("qr-notif", "Gambar QR disalin ke clipboard!");
+        }).catch(() => {
+          showNotif("qr-notif", "Gagal menyalin gambar.");
+        });
+      }, "image/png");
+    }
+  </script>
+
+</body>
+</html>
+=======
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -463,3 +1041,4 @@
     </script>
 </body>
 </html>
+>>>>>>> 1f08c06712b4a386a928c6b1903f0dfecdb20e7e
