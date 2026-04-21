@@ -23,6 +23,11 @@
       position: relative;
       /* overflow-x: hidden; */
     }
+    
+    #qr-code canvas, #qr-code img {
+      border: 10px solid white; /* preview border */
+      border-radius: 5px;
+    }
 
     #bgVideo {
       position: fixed;
@@ -77,7 +82,7 @@
       margin-bottom: 14px;
       resize: vertical;
       background: rgba(255, 255, 255, 0);
-      /* color: #ffffff; */
+      color: #ffffff;
       transition: border 0.2s ease;
     }
 
@@ -142,7 +147,7 @@
       top: 50%;
       transform: translateY(-50%);
       font-size: 18px;
-      /* color: rgba(255,255,255,0.5); */
+      color: rgba(255,255,255,0.5);
       pointer-events: none;
     }
 
@@ -512,6 +517,9 @@
     const qrMessage = document.getElementById("qr-message");
     const actionButtons = document.getElementById("action-buttons");
 
+    const QR_BORDER_SIZE = 10;
+    const QR_BORDER_COLOR = "#ffffff";
+
     function generateQR(text) {
       qrCodeDiv.innerHTML = "";
       if (!text.trim()) {
@@ -548,19 +556,43 @@
       return qrCodeDiv.querySelector("canvas");
     }
 
+    function getCanvasWithBorder(borderSize = QR_BORDER_SIZE, borderColor = QR_BORDER_COLOR) {
+      const originalCanvas = getQRCanvas();
+      if (!originalCanvas) return null;
+
+      const newCanvas = document.createElement("canvas");
+      const ctx = newCanvas.getContext("2d");
+
+      const finalWidth = originalCanvas.width + borderSize * 2;
+      const finalHeight = originalCanvas.height + borderSize * 2;
+
+      newCanvas.width = finalWidth;
+      newCanvas.height = finalHeight;
+
+      ctx.fillStyle = borderColor;
+      ctx.fillRect(0, 0, finalWidth, finalHeight);
+
+      ctx.drawImage(originalCanvas, borderSize, borderSize);
+
+      return newCanvas;
+    }
+
     function downloadQR() {
-      const canvas = getQRCanvas();
+      const canvas = getCanvasWithBorder();
       if (!canvas) return;
+
       const link = document.createElement("a");
       link.download = "qrcode.png";
       link.href = canvas.toDataURL("image/png");
       link.click();
+
       showNotif("qr-notif", "QR Code berhasil diunduh!");
     }
 
     function copyQRImage() {
-      const canvas = getQRCanvas();
+      const canvas = getCanvasWithBorder();
       if (!canvas) return;
+
       canvas.toBlob(function (blob) {
         const item = new ClipboardItem({ "image/png": blob });
         navigator.clipboard.write([item]).then(() => {
